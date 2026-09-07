@@ -1,0 +1,24 @@
+# Python Virtual Environment
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# Storage - Uploaded and Processed files
+storage/uploads/*
+storage/processed/*
+storage/exports/*
+!storage/uploads/.gitkeep
+!storage/processed/.gitkeep
+!storage/exports/.gitkeep
+
+# IDE Settings
+.vscode/
+.idea/
