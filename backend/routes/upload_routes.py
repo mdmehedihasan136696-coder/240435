@@ -1,102 +1,54 @@
 import os
+import cv2
 import numpy as np
 from PIL import Image
-from flask import Blueprint, request, jsonify
-from config import Config
-from backend.utils.file_helpers import (
-    is_allowed_file, 
-    generate_unique_filename, 
-    get_file_extension
-)
-from backend.services.raster_service import RasterService
-from backend.models.raster_model import RasterModel
+from flask import Blueprint, request, jsonify, url_for
 
 upload_bp = Blueprint('upload_bp', __name__)
 
-@upload_bp.route('/api/upload', methods=['POST'])
-def upload_file():
-    """
-    POST /api/upload
-    Handles raw image / GIS raster upload, extracts initial metadata,
-    generates a web-viewable PNG preview, and stores record.
-    """
-    if 'file' not in request.files:
-        return jsonify({"error": "No file field found in upload request"}), 400
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+PROCESSED_FOLDER = os.path.join(os.getcwd(), 'processed')
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No file selected for upload"}), 400
-
-    if not is_allowed_file(file.filename):
-        return jsonify({
-            "error": "Unsupported file format. Please upload .tif, .geotiff, .asc, .png, .jpg, .jpeg, .bmp, .webp, or .csv"
-        }), 400
-
+@upload_bp.route('/api/normalize', methods=['POST'])
+def normalize_raster():
     try:
-        # 1. Save Original File
-        saved_filename = generate_unique_filename(file.filename)
-        upload_path = os.path.join(Config.UPLOAD_FOLDER, saved_filename)
-        file.save(upload_path)
+        data = request.get_json()
+        filename = data.get('filename')
+        method = data.get('method', 'min_max')
+        
+        if not filename:
+            return jsonify({"error": "No filename provided"}), 400
+            
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_path):
+            return jsonify({"error": "File not found"}), 404
 
-        # 2. Extract Data Array & Metadata via RasterService
-        grid_array, metadata = RasterService.read_raster_data(upload_path)
+        # Load image & Process Normalization (0.0 to 1.0)
+        img = Image.open(file_path).convert('L')
+        img_np = np.array(img, dtype=np.float32)
 
-        # 3. Calculate Original Array Min / Max Statistics
-        valid_mask = ~np.isnan(grid_array)
-        if metadata.get("nodata") is not None:
-            valid_mask = valid_mask & (grid_array != metadata["nodata"])
-
-        valid_data = grid_array[valid_mask]
-        if valid_data.size == 0:
-            return jsonify({"error": "The uploaded raster contains no valid numerical values."}), 400
-
-        orig_min = float(np.min(valid_data))
-        orig_max = float(np.max(valid_data))
-        orig_mean = float(np.mean(valid_data))
-        orig_std = float(np.std(valid_data))
-
-        # 4. Generate Web Preview PNG Image (0-255 scaled)
-        preview_filename = generate_unique_filename(file.filename, suffix="preview.png")
-        # Ensure extension is .png
-        preview_filename = preview_filename.rsplit('.', 1)[0] + '.png'
-        preview_path = os.path.join(Config.PROCESSED_FOLDER, preview_filename)
-
-        if orig_max > orig_min:
-            norm_display = (grid_array - orig_min) / (orig_max - orig_min)
-            norm_display = np.clip(norm_display * 255.0, 0, 255).astype(np.uint8)
+        min_val, max_val = img_np.min(), img_np.max()
+        if max_val > min_val:
+            norm_np = (img_np - min_val) / (max_val - min_val)
         else:
-            norm_display = np.zeros_like(grid_array, dtype=np.uint8)
+            norm_np = np.zeros_like(img_np)
 
-        # Handle NaNs / NoData for Preview Image (set to transparent or black)
-        norm_display[~valid_mask] = 0
-        img = Image.fromarray(norm_display)
-        img.save(preview_path, format="PNG")
+        # Save Normalized Output PNG
+        norm_img_8u = (norm_np * 255).astype(np.uint8)
+        norm_filename = f"norm_{filename}.png"
+        out_path = os.path.join(PROCESSED_FOLDER, norm_filename)
+        Image.fromarray(norm_img_8u).save(out_path)
 
-        # 5. Build Complete Metadata Record
-        meta_record = {
-            "original_filename": file.filename,
-            "saved_filename": saved_filename,
-            "preview_filename": preview_filename,
-            "file_size_bytes": os.path.getsize(upload_path),
-            "stats": {
-                "min": orig_min,
-                "max": orig_max,
-                "mean": orig_mean,
-                "std": orig_std
-            },
-            **metadata
-        }
-
-        # 6. Save Record in Database
-        raster_id = RasterModel.save_raster_metadata(meta_record)
+        # Generate sample grid matrix for visual grid
+        small_matrix = norm_np[:8, :8].tolist() if norm_np.shape[0] >= 8 else norm_np.tolist()
 
         return jsonify({
-            "success": True,
-            "message": "File uploaded and processed successfully!",
-            "raster_id": raster_id,
-            "preview_url": f"/storage/processed/{preview_filename}",
-            "metadata": meta_record
+            "message": "Normalization successful",
+            "normalized_preview_url": f"/processed/{norm_filename}",
+            "tiff_download_url": f"/processed/{norm_filename}",
+            "download_url": f"/processed/{norm_filename}",
+            "grid_matrix": small_matrix
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Failed to process raster file: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500

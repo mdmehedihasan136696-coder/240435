@@ -3,196 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raster Normalizer — Web-Based GIS Raster Data Studio</title>
-    
+    <title>Raster Normalizer - Spatial Data Processing</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Leaflet CSS for GIS Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <link rel="shortcut icon" href="#">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
-    <!-- TOP NAVIGATION BAR -->
-    <header class="navbar flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
-        <div class="logo-container flex items-center space-x-3">
-            <i class="fa-solid fa-layer-group logo-icon text-2xl text-emerald-400"></i>
-            <div class="logo-text flex flex-col">
-                <span class="brand-title font-bold text-lg text-white">Raster Normalizer</span>
-                <span class="brand-sub text-xs text-slate-400">GIS Studio v1.0</span>
-            </div>
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-layer-group text-emerald-400 text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-wide">Raster Normalizer</h1>
         </div>
-        
-        <nav class="nav-links flex space-x-6 text-sm font-medium text-slate-300">
-            <a href="#upload-section" class="hover:text-emerald-400 transition"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</a>
-            <a href="#metadata-section" class="hover:text-emerald-400 transition"><i class="fa-solid fa-circle-info"></i> Metadata</a>
-            <a href="#preview-section" class="hover:text-emerald-400 transition"><i class="fa-solid fa-sliders"></i> Normalize</a>
-            <a href="#grid-section" class="hover:text-emerald-400 transition"><i class="fa-solid fa-table-cells"></i> Grid View</a>
-            <a href="#doc-section" class="hover:text-emerald-400 transition"><i class="fa-solid fa-book-open"></i> Documentation</a>
-        </nav>
-
-        <div class="nav-actions flex items-center space-x-4">
-            <span id="backend-status-pill" class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-300 border border-slate-600">
+        <div>
+            <span id="backend-status-pill" class="px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30">
                 Backend: Checking...
             </span>
-            <button class="btn p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200" id="btn-theme-toggle">
-                <i class="fa-solid fa-moon"></i>
-            </button>
-            <a href="#upload-section" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg text-white font-medium text-sm transition">
-                <i class="fa-solid fa-plus mr-1"></i> New Raster
-            </a>
         </div>
     </header>
 
-    <!-- HERO SECTION -->
-    <section class="hero-section py-10 text-center bg-slate-800/50 border-b border-slate-800">
-        <div class="hero-content max-w-3xl mx-auto px-4">
-            <h1 class="text-3xl font-extrabold text-white sm:text-4xl">Raster Data Normalization Studio</h1>
-            <p class="mt-3 text-slate-400 text-base">Upload, process, normalize (0 to 1 scaling), and visualize satellite imagery, GeoTIFFs, and spatial raster grids instantly.</p>
-        </div>
-    </section>
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
 
-    <main class="main-container max-w-7xl mx-auto px-4 py-8 space-y-8">
-
-        <!-- 1. UPLOAD SECTION -->
-        <section id="upload-section" class="dashboard-card bg-slate-800 p-6 rounded-xl border border-slate-700">
-            <div class="card-header flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-file-import text-emerald-400 mr-2"></i> Upload Raster / Image File</h2>
-                <span class="badge bg-indigo-500/20 text-indigo-300 text-xs px-3 py-1 rounded-full border border-indigo-500/30">GeoTIFF, PNG, JPG, BMP, WEBP, CSV</span>
-            </div>
-            
-            <div class="drop-zone border-2 border-dashed border-slate-600 hover:border-emerald-500 rounded-xl p-10 text-center bg-slate-900/40 cursor-pointer transition" id="drop-zone">
-                <div class="drop-zone-content space-y-3">
-                    <i class="fa-solid fa-cloud-arrow-up text-5xl text-emerald-400"></i>
-                    <h3 class="text-lg font-semibold text-white">Drag & Drop your Raster or Image file here</h3>
-                    <p class="text-slate-400 text-sm">or click the button below to browse from your computer</p>
-                    <div class="format-tags flex flex-wrap justify-center gap-2 pt-2">
-                        <span class="tag bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">.TIF / .TIFF</span>
-                        <span class="tag bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">.PNG</span>
-                        <span class="tag bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">.JPG</span>
-                        <span class="tag bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">.WEBP</span>
-                    </div>
-                    <div class="pt-4">
-                        <button class="btn bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-6 py-2.5 rounded-lg transition" id="btn-select-file">
-                            <i class="fa-solid fa-folder-open mr-2"></i> Browse Files
-                        </button>
-                    </div>
-                    <input type="file" id="file-input" accept=".tif,.tiff,.geotiff,.png,.jpg,.jpeg,.bmp,.webp" class="hidden">
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. METADATA & CONFIGURATION SECTION -->
-        <section id="metadata-section" class="dashboard-card bg-slate-800 p-6 rounded-xl border border-slate-700 hidden">
-            <div class="card-header flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-circle-info text-indigo-400 mr-2"></i> Raster Properties & Band Selection</h2>
-                <span class="badge bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/30" id="file-type-badge">Raster Loaded</span>
-            </div>
-
-            <div class="metadata-grid grid grid-cols-2 md:grid-cols-3 gap-4 bg-slate-900/60 p-4 rounded-lg border border-slate-700/50 text-sm">
-                <div><span class="text-slate-400 block text-xs">Filename</span> <span class="font-semibold text-slate-200" id="meta-filename">-</span></div>
-                <div><span class="text-slate-400 block text-xs">Dimensions</span> <span class="font-semibold text-slate-200" id="meta-dimensions">-</span></div>
-                <div><span class="text-slate-400 block text-xs">Total Bands</span> <span class="font-semibold text-slate-200" id="meta-bands">-</span></div>
-                <div><span class="text-slate-400 block text-xs">Data Type</span> <span class="font-semibold text-slate-200" id="meta-dtype">-</span></div>
-                <div><span class="text-slate-400 block text-xs">CRS (Georeference)</span> <span class="font-semibold text-slate-200" id="meta-crs">-</span></div>
-                <div><span class="text-slate-400 block text-xs">NoData Value</span> <span class="font-semibold text-slate-200" id="meta-nodata">-</span></div>
-            </div>
-
-            <div class="band-selector-box mt-6 p-4 bg-slate-900/40 rounded-lg border border-slate-700/50">
-                <h3 class="text-md font-semibold text-slate-200 mb-3"><i class="fa-solid fa-sliders text-emerald-400 mr-2"></i> Normalization Parameters</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Target Band</label>
-                        <select id="band-index" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="1">Band 1 (Default)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">RGB Conversion Mode</label>
-                        <select id="rgb-mode" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="grayscale">Luminance Grayscale</option>
-                            <option value="red">Red Band Only</option>
-                            <option value="green">Green Band Only</option>
-                            <option value="blue">Blue Band Only</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Normalization Method</label>
-                        <select id="norm-technique" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="min_max">Min-Max Scaling (0.0 to 1.0)</option>
-                            <option value="z_score">Z-Score Normalization</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <button class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-lg transition flex items-center" id="btn-run-normalize">
-                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Normalize Raster
+        <!-- Upload Zone -->
+        <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-xl text-center">
+            <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500/80 transition rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-950/40">
+                <i class="fa-solid fa-cloud-arrow-up text-5xl text-emerald-400 mb-4"></i>
+                <h3 class="text-lg font-medium text-slate-200">Drag and drop your GeoTIFF or Raster image here</h3>
+                <p class="text-sm text-slate-400 mt-1 mb-4">Supports .tif, .tiff, .png, .jpg files</p>
+                
+                <input type="file" id="file-input" class="hidden" accept=".tif,.tiff,.png,.jpg,.jpeg">
+                <button id="btn-select-file" type="button" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg shadow-lg shadow-emerald-900/20 transition flex items-center">
+                    <i class="fa-solid fa-folder-open mr-2"></i> Browse Files
                 </button>
             </div>
         </section>
 
-        <!-- 3. PREVIEW & COMPARISON SECTION -->
-        <section id="preview-section" class="dashboard-card bg-slate-800 p-6 rounded-xl border border-slate-700 hidden">
-            <div class="card-header flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-border-all text-amber-400 mr-2"></i> Visual Comparison & Preview</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="preview-box bg-slate-900 p-4 rounded-lg border border-slate-700/50 text-center">
-                    <div class="text-sm font-semibold text-slate-300 mb-3">Original Image / Raster</div>
-                    <div class="image-wrapper min-h-[250px] flex items-center justify-center bg-slate-950/50 rounded overflow-hidden">
-                        <img id="img-original-preview" class="max-h-80 object-contain hidden" alt="Original Preview">
-                        <span id="orig-placeholder" class="text-slate-500 text-xs">No image loaded</span>
-                    </div>
+        <!-- Metadata Section (Hidden by Default) -->
+        <section id="metadata-section" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 hidden">
+            <h2 class="text-md font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-emerald-400"></i> Raster Metadata
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">Filename</span>
+                    <span id="meta-filename" class="font-mono font-semibold text-slate-200 truncate block">-</span>
                 </div>
-                <div class="preview-box bg-slate-900 p-4 rounded-lg border border-slate-700/50 text-center">
-                    <div class="text-sm font-semibold text-slate-300 mb-3">Normalized Output (0.0 — 1.0)</div>
-                    <div class="image-wrapper min-h-[250px] flex items-center justify-center bg-slate-950/50 rounded overflow-hidden">
-                        <img id="img-normalized-preview" class="max-h-80 object-contain hidden" alt="Normalized Preview">
-                        <span id="norm-placeholder" class="text-slate-500 text-xs">Click Normalize to process</span>
-                    </div>
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">Dimensions</span>
+                    <span id="meta-dimensions" class="font-mono text-slate-200 block">-</span>
                 </div>
-            </div>
-
-            <!-- EXPORT TIFF BUTTON -->
-            <div id="export-container" class="mt-6 pt-4 border-t border-slate-700/60 flex justify-end hidden">
-                <a id="btn-download-tiff" href="#" download="normalized_output.tif" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-lg transition flex items-center">
-                    <i class="fa-solid fa-file-arrow-down mr-2"></i> Download Normalized TIFF
-                </a>
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">Bands</span>
+                    <span id="meta-bands" class="font-mono text-slate-200 block">-</span>
+                </div>
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">Data Type</span>
+                    <span id="meta-dtype" class="font-mono text-slate-200 block">-</span>
+                </div>
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">CRS</span>
+                    <span id="meta-crs" class="font-mono text-slate-200 block">-</span>
+                </div>
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="block text-slate-500 text-xs">NoData Value</span>
+                    <span id="meta-nodata" class="font-mono text-slate-200 block">-</span>
+                </div>
             </div>
         </section>
 
-        <!-- 4. DOCUMENTATION SECTION -->
-        <section id="doc-section" class="dashboard-card bg-slate-800 p-6 rounded-xl border border-slate-700">
-            <div class="card-header mb-4">
-                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-book-open text-purple-400 mr-2"></i> GIS Raster Normalization Documentation</h2>
+        <!-- Processing Control Bar -->
+        <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-md font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-emerald-400"></i> Normalization Parameters
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Target Band</label>
+                    <select id="band-index" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="1">Band 1 (Default)</option>
+                        <option value="2">Band 2</option>
+                        <option value="3">Band 3</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Normalization Method</label>
+                    <select id="norm-technique" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="min_max">Min-Max Scaling (0.0 to 1.0)</option>
+                        <option value="z_score">Z-Score Standardization</option>
+                    </select>
+                </div>
+                <div>
+                    <button id="btn-run-normalize" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg transition shadow-lg shadow-emerald-900/20 flex justify-center items-center">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Normalize Raster
+                    </button>
+                </div>
             </div>
-            <div class="doc-body text-slate-300 text-sm space-y-4">
-                <h3 class="text-lg font-semibold text-white">What is Raster Normalization?</h3>
-                <p>Raster normalization is the process of scaling numeric pixel values from an arbitrary range into a unified standard domain, typically between <strong class="text-emerald-400">0.0 and 1.0</strong>.</p>
+        </section>
+
+        <!-- Visual Comparison Section (Hidden by Default) -->
+        <section id="preview-section" class="space-y-4 hidden">
+            <h2 class="text-md font-semibold text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-border-all text-emerald-400"></i> Visual Comparison & Preview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Original Image View -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <span class="text-xs font-semibold text-slate-400 mb-3">Original Image / Raster</span>
+                    <div class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 h-72 flex items-center justify-center overflow-hidden">
+                        <span id="orig-placeholder" class="text-slate-600 text-sm">No image loaded</span>
+                        <img id="img-original-preview" class="max-h-full max-w-full object-contain rounded hidden" alt="Original Preview">
+                    </div>
+                </div>
+
+                <!-- Normalized Image View -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <span class="text-xs font-semibold text-slate-400 mb-3">Normalized Output (0.0 — 1.0)</span>
+                    <div class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 h-72 flex items-center justify-center overflow-hidden">
+                        <span id="norm-placeholder" class="text-slate-600 text-sm">Click Normalize to process</span>
+                        <img id="img-normalized-preview" class="max-h-full max-w-full object-contain rounded hidden" alt="Normalized Preview">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Interactive Pixel Grid Matrix Section (Hidden by Default) -->
+        <section id="grid-section" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-md font-semibold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells text-emerald-400"></i> Dynamic Pixel Grid Matrix Sample
+                </h2>
+                <div class="flex gap-2">
+                    <button id="btn-grid-toggle-norm" class="px-3 py-1 bg-emerald-600 text-xs font-semibold rounded text-white border border-emerald-500">
+                        Normalized (0-1)
+                    </button>
+                    <button id="btn-grid-toggle-orig" class="px-3 py-1 bg-slate-700 text-xs font-semibold rounded text-slate-200 border border-slate-600 hover:bg-slate-600">
+                        Original Raw
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Grid Matrix Container -->
+            <div id="raster-grid-matrix" class="bg-slate-950 p-4 rounded-xl border border-slate-800 min-h-[160px] overflow-x-auto">
+                <!-- Javascript will inject 8x8 cells here -->
+            </div>
+        </section>
+
+        <!-- Export & Download Action Bar (Hidden by Default) -->
+        <section id="export-section" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4 hidden">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-200">Export Processed Data</h3>
+                <p class="text-xs text-slate-400">Download the normalized spatial array in GeoTIFF, PNG image, or CSV matrix formats.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a id="btn-export-png" href="#" download="normalized_raster.png" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-file-image"></i> Download PNG Preview
+                </a>
+                <a id="btn-export-geotiff" href="#" download="normalized_raster.tif" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm rounded-lg border border-slate-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-export"></i> Download GeoTIFF
+                </a>
+                <a id="btn-export-csv" href="#" download="matrix_data.csv" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm rounded-lg border border-slate-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv"></i> Export Matrix CSV
+                </a>
             </div>
         </section>
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="footer py-6 text-center text-xs text-slate-500 border-t border-slate-800">
-        <p>&copy; 2026 Raster Normalizer — Urban & Rural Planning GIS Tool | Built with Flask & NumPy</p>
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        Raster Normalizer System &bull; Render Cloud Deployment Environment
     </footer>
 
-    <!-- Main Handling Script -->
+    <!-- Main Logic Script -->
     <script src="js/main.js"></script>
 </body>
 </html>
